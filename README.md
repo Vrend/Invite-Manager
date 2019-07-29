@@ -15,7 +15,10 @@ Begin by running the following commands:
  
  ## Running
  
- Start the *Flask Production* configuration in pycharm
+Run *Flask Production* in pycharm
+
+If you want to enable debugging, run *Flask Development*
+**Warning:** Enabling the debugger may leave you open to exploits.
  
  
 ## License
