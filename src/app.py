@@ -1,8 +1,9 @@
 import sys
+import uuid
 from flask import Flask, render_template, flash, redirect, url_for, session, logging, request
-from data import get_forms
+from data import gen_options
 from flask_mysqldb import MySQL
-from wtforms import Form, StringField, TextAreaField, PasswordField, validators
+from wtforms import Form, StringField, PasswordField, validators, widgets, SelectMultipleField, IntegerField
 from passlib.hash import sha256_crypt
 from functools import wraps
 
@@ -35,10 +36,6 @@ app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 db_config.close()
 
 mysql = MySQL(app)
-
-# grabs all forms made (temporarily)
-
-forms = get_forms()
 
 
 # Wrappers for sessions
@@ -76,18 +73,56 @@ def about():
 @app.route('/forms')
 @is_logged_in
 def view_forms():
-    return render_template('forms.html', forms=forms)
+    cur = mysql.connection.cursor()
+
+    result = cur.execute('SELECT * FROM forms WHERE user=%s', [session['username']])
+    forms = cur.fetchall()
+    cur.close()
+    if result > 0:
+        return render_template('forms.html', forms=forms)
+    else:
+        msg = 'No forms found :('
+        return render_template('forms.html', msg=msg)
+
 
 # Create a form here
-@app.route('/create_form')
+@app.route('/create_form', methods=['GET', 'POST'])
 @is_logged_in
 def create_form():
-    return render_template('create_form.html')
+    form = FormCreationForm(request.form)
+    if request.method == 'POST' and form.validate:
+        name = form.name.data
+        uses = form.uses.data
+        options = gen_options(form.data.data)
+        form_id = uuid.uuid1().hex
+
+        cur = mysql.connection.cursor()
+        cur.execute('INSERT INTO forms(id, user, name, data, uses, max_uses) VALUES(%s, %s, %s, %s, 0, %s)', (form_id, session['username'], name, options, uses))
+        mysql.connection.commit()
+        cur.close()
+        flash('Form Created', 'success')
+        return redirect(url_for('index'))
+
+    return render_template('create_form.html', form=form)
+
+# Delete a form
+@app.route('/delete_form/<string:id>/', methods=['POST'])
+@is_logged_in
+def delete_form(id):
+    cur = mysql.connection.cursor()
+    cur.execute('DELETE FROM forms WHERE id = %s AND user = %s', [id, session['username']])
+    mysql.connection.commit()
+    cur.close()
+    flash('Form Deleted', 'success')
+    return redirect(url_for('view_forms'))
 
 # View a specific form
 @app.route('/forms/<string:id>/')
 def view_form(id):
-    return render_template('form.html', id=id)
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT * FROM forms WHERE id = %s', [id])
+    form = cur.fetchone()
+    return render_template('form.html', form=form)
 
 # Register an account
 @app.route('/register', methods=['GET', 'POST'])
@@ -155,8 +190,17 @@ def check_if_user_table_exists():
     if result < 1:
         print('Creating User Table...')
         cur.execute('CREATE TABLE users(id INT(12) AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), email VARCHAR(100), username VARCHAR(30), password VARCHAR(100))')
+        mysql.connection.commit()
     else:
         print('Loading User table...')
+    result = cur.execute('SHOW TABLES LIKE \'forms\'')
+    if result < 1:
+        print('Creating Forms Table...')
+        cur.execute('CREATE TABLE forms(id VARCHAR(50) PRIMARY KEY, user VARCHAR(30), name VARCHAR(50), data VARCHAR(25), uses INT(10), max_uses INT(10))')
+        mysql.connection.commit()
+    else:
+        print('Loading Forms Table...')
+    cur.close()
 
 
 # Registration form
@@ -168,9 +212,27 @@ class RegisterForm(Form):
     confirm = PasswordField('Confirm Password', )
 
 
+class CheckBoxField(SelectMultipleField):
+    widget = widgets.ListWidget(prefix_label=False)
+    option_widget = widgets.CheckboxInput()
+
+
+class FormCreationForm(Form):
+    name = StringField('Form Name', [validators.Length(min=1, max=50)])
+    options = [(1, 'picture'), (2, 'name'), (3, 'email'), (4, 'Phone #'), (5, 'School')]
+    data = CheckBoxField('Field Options', choices=options, coerce=int)
+    uses = IntegerField('Form Uses', [validators.DataRequired(message='Give a number, -1 for infinite uses')])
+
+
 @app.errorhandler(404)
 def handle_404(e):
-    flash(str(e), 'danger')
+    flash('Page is unauthorized or doesn\'t exist. Check spelling or try again', 'danger')
+    return redirect(url_for('index'))
+
+
+@app.errorhandler(405)
+def handle_405(e):
+    flash('Page is unauthorized or doesn\'t exist. Check spelling or try again', 'danger')
     return redirect(url_for('index'))
 
 

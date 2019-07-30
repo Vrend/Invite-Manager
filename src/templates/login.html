@@ -11,6 +11,9 @@
         <label>Password</label>
         <input type="password" name="password" class="form-control" value="{{request.form.password}}">
     </div>
-    <p><input type="submit" class="btn btn-primary" value="Submit"></p>
+    <p>
+        <input type="submit" class="btn btn-primary" value="Submit">
+        <a class="btn btn-danger" href="/">Cancel</a>
+    </p>
 </form>
 {% endblock %}
