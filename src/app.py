@@ -118,11 +118,16 @@ def delete_form(id):
 
 # View a specific form
 @app.route('/forms/<string:id>/')
-def view_form(id):
+@is_logged_in
+def view_form(user_id):
     cur = mysql.connection.cursor()
-    cur.execute('SELECT * FROM forms WHERE id = %s', [id])
-    form = cur.fetchone()
-    return render_template('form.html', form=form)
+    result = cur.execute('SELECT * FROM forms WHERE id = %s AND user = %s', [user_id, session['username']])
+    if result > 0:
+        form = cur.fetchone()
+        return render_template('form.html', form=form)
+    else:
+        flash('Form is Unavailable', 'danger')
+        return redirect(url_for('index'))
 
 # Register an account
 @app.route('/register', methods=['GET', 'POST'])
