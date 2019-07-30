@@ -11,9 +11,8 @@ app = Flask(__name__)
 # mysql config
 
 db_config = open('../db-info', 'r')
-db_secret_key = db_config.readline().strip()
 
-
+app.secret_key = db_config.readline().strip()
 app.config['MYSQL_HOST'] = db_config.readline().strip()
 app.config['MYSQL_USER'] = db_config.readline().strip()
 app.config['MYSQL_PASSWORD'] = db_config.readline().strip()
@@ -24,11 +23,11 @@ db_config.close()
 
 mysql = MySQL(app)
 
+# grabs all forms made (temporarily)
+
 forms = get_forms()
 
-# secret key
-
-app.secret_key = db_secret_key
+# Wrappers for sessions
 
 
 def is_logged_in(f):
@@ -52,33 +51,36 @@ def is_logged_out(f):
     return wrap
 
 
+# Addresses
+
+# Site index
 @app.route('/')
 def index():
     return render_template('home.html')
 
-
+# About page
 @app.route('/about')
 def about():
     return render_template('about.html')
 
-
+# View all available forms
 @app.route('/forms')
 @is_logged_in
 def view_forms():
     return render_template('forms.html', forms=forms)
 
-
+# Create a form here
 @app.route('/create_form')
 @is_logged_in
 def create_form():
     return render_template('create_form.html')
 
-
+# View a specific form
 @app.route('/forms/<string:id>/')
 def view_form(id):
     return render_template('form.html', id=id)
 
-
+# Register an account
 @app.route('/register', methods=['GET', 'POST'])
 @is_logged_out
 def register():
@@ -98,7 +100,7 @@ def register():
         return redirect(url_for('index'))
     return render_template('register.html', form=register_form)
 
-
+# Login on this page
 @app.route('/login', methods=['GET', 'POST'])
 @is_logged_out
 def login():
@@ -128,7 +130,7 @@ def login():
             return render_template('login.html', error=error)
     return render_template('login.html')
 
-
+# Logout on this page
 @app.route('/logout')
 @is_logged_in
 def logout():
@@ -137,6 +139,7 @@ def logout():
     return redirect(url_for('index'))
 
 
+# Registration form
 class RegisterForm(Form):
     name = StringField('Name', [validators.Length(min=1, max=50)])
     username = StringField('Username', [validators.Length(min=4, max=25)])
