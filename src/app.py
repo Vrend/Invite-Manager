@@ -119,7 +119,7 @@ def login():
                 session['username'] = username
                 flash('You are now logged in', 'success')
                 cur.close()
-                return redirect(url_for('view_forms'))
+                return redirect(url_for('index'))
             else:
                 error = 'Incorrect Password'
                 cur.close()

@@ -3,6 +3,9 @@
 {% block body %}
     <div class="jumbotron text-center">
         <h1>Invite Manager Homepage</h1>
+        {% if session.logged_in %}
+            <h2>Welcome {{session.username}}</h2>
+        {% endif %}
         <p class="lead">This application allows you to manage and create invites for events.</p>
     </div>
 {% endblock %}
