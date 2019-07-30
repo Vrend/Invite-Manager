@@ -6,6 +6,8 @@ from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from functools import wraps
 
+# Check if in debug mode
+
 debug = False
 try:
     debug_param = sys.argv[1]
@@ -40,8 +42,6 @@ forms = get_forms()
 
 
 # Wrappers for sessions
-
-
 def is_logged_in(f):
     @wraps(f)
     def wrap(*args, **kwargs):
