@@ -1,3 +1,4 @@
+import sys
 from flask import Flask, render_template, flash, redirect, url_for, session, logging, request
 from data import get_forms
 from flask_mysqldb import MySQL
@@ -5,6 +6,13 @@ from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from functools import wraps
 
+debug = False
+try:
+    debug_param = sys.argv[1]
+    if debug_param == 'debug':
+        debug = True
+except IndexError:
+    debug = False
 
 app = Flask(__name__)
 
@@ -16,7 +24,10 @@ app.secret_key = db_config.readline().strip()
 app.config['MYSQL_HOST'] = db_config.readline().strip()
 app.config['MYSQL_USER'] = db_config.readline().strip()
 app.config['MYSQL_PASSWORD'] = db_config.readline().strip()
-app.config['MYSQL_DB'] = db_config.readline().strip()
+
+mysql_db = db_config.readline().strip()
+
+app.config['MYSQL_DB'] = mysql_db
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 db_config.close()
@@ -26,6 +37,7 @@ mysql = MySQL(app)
 # grabs all forms made (temporarily)
 
 forms = get_forms()
+
 
 # Wrappers for sessions
 
@@ -49,9 +61,6 @@ def is_logged_out(f):
         else:
             return redirect(url_for('index'))
     return wrap
-
-
-# Addresses
 
 # Site index
 @app.route('/')
@@ -139,6 +148,17 @@ def logout():
     return redirect(url_for('index'))
 
 
+@app.before_first_request
+def check_if_user_table_exists():
+    cur = mysql.connection.cursor()
+    result = cur.execute('SHOW TABLES LIKE \'users\'')
+    if result < 1:
+        print('Creating User Table...')
+        cur.execute('CREATE TABLE users(id INT(12) AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), email VARCHAR(100), username VARCHAR(30), password VARCHAR(100))')
+    else:
+        print('Loading User table...')
+
+
 # Registration form
 class RegisterForm(Form):
     name = StringField('Name', [validators.Length(min=1, max=50)])
@@ -146,3 +166,7 @@ class RegisterForm(Form):
     email = StringField('Email', [validators.Length(min=3, max=50)])
     password = PasswordField('Password', [validators.DataRequired(), validators.EqualTo('confirm', message="Passwords don't match"), validators.Length(min=5, max=50)])
     confirm = PasswordField('Confirm Password', )
+
+
+if __name__ == '__main__':
+    app.run(debug=debug)
