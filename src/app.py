@@ -187,6 +187,25 @@ def logout():
     return redirect(url_for('index'))
 
 
+@app.route('/user_settings')
+@is_logged_in
+def user_settings():
+    return render_template('user_settings.html')
+
+
+@app.route('/delete_account', methods=['POST'])
+@is_logged_in
+def delete_account():
+    cur = mysql.connection.cursor()
+    cur.execute('DELETE FROM forms WHERE user = %s', [session['username']])
+    cur.execute('DELETE FROM users WHERE username = %s', [session['username']])
+    mysql.connection.commit()
+    session.clear()
+    flash('Account Successfully Deleted', 'success')
+    cur.close()
+    return redirect(url_for('index'))
+
+
 @app.before_first_request
 def check_if_user_table_exists():
     cur = mysql.connection.cursor()
