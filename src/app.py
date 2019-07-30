@@ -1,7 +1,7 @@
 import sys
 import uuid
 from flask import Flask, render_template, flash, redirect, url_for, session, logging, request
-from data import gen_options
+from data import gen_options, check_unique_user
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, PasswordField, validators, widgets, SelectMultipleField, IntegerField
 from passlib.hash import sha256_crypt
@@ -134,6 +134,10 @@ def register():
         username = register_form.username.data
         email = register_form.email.data
         password = sha256_crypt.encrypt(str(register_form.password.data))
+
+        if not check_unique_user(username, email, mysql):
+            flash('Username or email already taken', 'danger')
+            return redirect(url_for('register'))
 
         cur = mysql.connection.cursor()
         cur.execute('INSERT INTO users(name, email, username, password) VALUES(%s, %s, %s, %s)', (name, email, username, password))
