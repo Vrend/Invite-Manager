@@ -1,0 +1,11 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+    <h1>My Forms<small> Welcome {{session.username}}</small></h1>
+    <ul class="list-group">
+        {% for form in forms %}
+        <li class="list-group-item"><a href="forms/{{form.id}}">{{form.name}}</a></li>
+        {% endfor %}
+    </ul>
+
+{% endblock %}

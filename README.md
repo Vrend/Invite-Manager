@@ -11,6 +11,15 @@ Begin by running the following commands:
  
  This will create a virtual environment and install dependencies
  
+ Next you need to create a database in mysql and create a file called 'db-info' in the src directory and fill it out like so
+ ```
+Line 1: secret key (make it anything)
+Line 2: mysql ip (localhost if own machine)
+Line 3: mysql username
+Line 4: mysql password
+Line 5: mysql database name
+```
+ 
  Go ahead and test if everything is working by running the *Flask Testing* configuration in pycharm
  
  ## Running
