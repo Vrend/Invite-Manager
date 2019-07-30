@@ -90,7 +90,7 @@ def view_forms():
 @is_logged_in
 def create_form():
     form = FormCreationForm(request.form)
-    if request.method == 'POST' and form.validate:
+    if request.method == 'POST' and form.validate():
         name = form.name.data
         uses = form.uses.data
         options = gen_options(form.data.data)
@@ -230,7 +230,7 @@ def check_if_user_table_exists():
 class RegisterForm(Form):
     name = StringField('Name', [validators.Length(min=1, max=50)])
     username = StringField('Username', [validators.Length(min=4, max=25)])
-    email = StringField('Email', [validators.Length(min=3, max=50)])
+    email = StringField('Email', [validators.Length(min=3, max=50), validators.email(message="Must be a Valid Email")])
     password = PasswordField('Password', [validators.DataRequired(), validators.EqualTo('confirm', message="Passwords don't match"), validators.Length(min=5, max=50)])
     confirm = PasswordField('Confirm Password', )
 
@@ -244,7 +244,7 @@ class FormCreationForm(Form):
     name = StringField('Form Name', [validators.Length(min=1, max=50)])
     options = [(1, 'picture'), (2, 'name'), (3, 'email'), (4, 'Phone #'), (5, 'School')]
     data = CheckBoxField('Field Options', choices=options, coerce=int)
-    uses = IntegerField('Form Uses', [validators.DataRequired(message='Give a number, -1 for infinite uses')])
+    uses = IntegerField('Form Uses', [validators.DataRequired(message='Give a number, -1 for infinite uses'), validators.NumberRange(min=-1)])
 
 
 @app.errorhandler(404)
