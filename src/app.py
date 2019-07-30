@@ -168,5 +168,11 @@ class RegisterForm(Form):
     confirm = PasswordField('Confirm Password', )
 
 
+@app.errorhandler(404)
+def handle_404(e):
+    flash(str(e), 'danger')
+    return redirect(url_for('index'))
+
+
 if __name__ == '__main__':
     app.run(debug=debug)
