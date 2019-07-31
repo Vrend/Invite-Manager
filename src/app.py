@@ -1,41 +1,12 @@
-import sys
 import uuid
 from flask import Flask, render_template, flash, redirect, url_for, session, request, abort
 from data import *
 from flask_mysqldb import MySQL
-from wtforms import Form, StringField, PasswordField, validators, widgets, SelectMultipleField, IntegerField
+from site_forms import *
 from passlib.hash import sha256_crypt
 from functools import wraps
 
-# Check if in debug mode
-
-debug = False
-try:
-    debug_param = sys.argv[1]
-    if debug_param == 'debug':
-        debug = True
-except IndexError:
-    debug = False
-
 app = Flask(__name__)
-
-# mysql config
-
-db_config = open('../db-info', 'r')
-
-app.secret_key = db_config.readline().strip()
-app.config['MYSQL_HOST'] = db_config.readline().strip()
-app.config['MYSQL_USER'] = db_config.readline().strip()
-app.config['MYSQL_PASSWORD'] = db_config.readline().strip()
-
-mysql_db = db_config.readline().strip()
-
-app.config['MYSQL_DB'] = mysql_db
-app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
-
-db_config.close()
-
-mysql = MySQL(app)
 
 
 # Wrappers for sessions
@@ -368,37 +339,6 @@ def check_if_tables_exists():
     cur.close()
 
 
-# Registration form
-class RegisterForm(Form):
-    name = StringField('Name', [validators.Length(min=1, max=50)])
-    username = StringField('Username', [validators.Length(min=4, max=25)])
-    email = StringField('Email', [validators.Length(min=3, max=50), validators.email(message="Must be a Valid Email")])
-    password = PasswordField('Password', [validators.DataRequired(), validators.EqualTo('confirm', message="Passwords don't match"), validators.Length(min=5, max=50)])
-    confirm = PasswordField('Confirm Password', )
-
-
-# Form Creation Form
-class CheckBoxField(SelectMultipleField):
-    widget = widgets.ListWidget(prefix_label=False)
-    option_widget = widgets.CheckboxInput()
-
-
-class FormCreationForm(Form):
-    name = StringField('Form Name', [validators.Length(min=1, max=50)])
-    options = [(1, 'picture'), (2, 'name'), (3, 'email'), (4, 'Phone #'), (5, 'School')]
-    data = CheckBoxField('Field Options', choices=options, coerce=int)
-    uses = IntegerField('Form Uses', [validators.DataRequired(message='Give a number, -1 for infinite uses'), validators.NumberRange(min=-1)])
-
-
-# Form for Form Submission
-class SubmitFormForm(Form):
-    picture = StringField('Picture', [validators.DataRequired()])
-    name = StringField('Name', [validators.Length(min=1, max=50)])
-    email = StringField('Email', [validators.email()])
-    phone = StringField('Phone #', [validators.Regexp('^[2-9]\\d{2}-\\d{3}-\\d{4}$', message="Enter a valid phone number: XXX-XXX-XXXX")])
-    school = StringField('School', [validators.DataRequired()])
-
-
 @app.errorhandler(404)
 def handle_404(e):
     flash('Page is unauthorized or doesn\'t exist. Check spelling or try again', 'danger')
@@ -412,4 +352,15 @@ def handle_405(e):
 
 
 if __name__ == '__main__':
-    app.run(debug=debug)
+    # mysql config
+    db_config = open('../db-info', 'r')
+    app.secret_key = db_config.readline().strip()
+    app.config['MYSQL_HOST'] = db_config.readline().strip()
+    app.config['MYSQL_USER'] = db_config.readline().strip()
+    app.config['MYSQL_PASSWORD'] = db_config.readline().strip()
+    mysql_db = db_config.readline().strip()
+    app.config['MYSQL_DB'] = mysql_db
+    app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
+    db_config.close()
+    mysql = MySQL(app)
+    app.run(debug=check_debug_mode())

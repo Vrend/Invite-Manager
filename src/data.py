@@ -1,3 +1,6 @@
+import sys
+
+
 # Form data holds true-false data in this format: picture, name, email, phone #, School
 def gen_options(option_list):
     default = ['f', 'f', 'f', 'f', 'f']
@@ -51,6 +54,7 @@ def get_form_table_headers(response):
         res.append(col['COLUMN_NAME'])
     return res
 
+
 def build_submission_list(results):
     results = list(filter(None.__ne__, results))
     results = list(map(lambda x: x.data, results))
@@ -93,3 +97,14 @@ def check_email(email, mysql):
 
 def check_unique_user(username, email, mysql):
     return check_username(username, mysql) and check_email(email, mysql)
+
+
+def check_debug_mode():
+    debug = False
+    try:
+        debug_param = sys.argv[1]
+        if debug_param == 'debug':
+            debug = True
+    except IndexError:
+        debug = False
+    return debug
