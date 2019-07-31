@@ -141,10 +141,8 @@ def view_form(form_id):
 
         cur.execute('SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = \'myinvitemanager\' AND TABLE_NAME = \'%s\'' % form_id)
         headers = get_form_table_headers(cur.fetchall())
-        print(headers)
         cur.execute('SELECT * FROM %s' % form_id)
         responses = cur.fetchall()
-        print(responses)
         cur.close()
         return render_template('form.html', form=form, links=links, headers=headers, users=responses)
     else:
