@@ -1,15 +1,54 @@
 {% extends 'layout.html' %}
 
 {% block body %}
+    <script>
+        function push(index) {
+            var content = $('#id-'.concat(index)).text();
+            var result = window.location.host.concat('/submit_form?id=', content);
+            var dummy = document.createElement('textarea');
+            document.body.appendChild(dummy);
+            dummy.value = result;
+            dummy.select();
+            document.execCommand('Copy');
+            dummy.parentNode.removeChild(dummy);
+            $('#message').removeClass('hidden').show().delay(1200).fadeOut(300);
+        }
+    </script>
+    <div id="message" class="alert alert-success hidden">Link Copied</div>
     <h1>{{form.name}}</h1>
     <hr>
-    <h2>ID: {{form.id}}</h2>
+    <h2>Form ID: {{form.id}}</h2>
     <small>Uses: {{form.uses}}</small>
     <br/>
     <br/>
-    <br/>
-    <br/>
-    <br/>
-    <br/>
+    <table class="table table-striped">
+            <tr>
+                <th>Link ID</th>
+                <th>Name</th>
+                <th>Uses</th>
+                <th></th>
+                <th class="pull-right">Actions</th>
+                <th></th>
+            </tr>
+            {% for link in links %}
+                <tr>
+                    <td id="id-{{loop.index}}">{{link.id}}</td>
+                    <td>{{link.name}}</td>
+                    <td>{{link.uses}}</td>
+                    <td></td>
+                    <td>
+                        <button type="button" class="btn btn-primary pull-right" onclick="push({{loop.index}})">Copy Link</button>
+                    </td>
+                    <td>
+                        <form method="POST" action="{{url_for('delete_form_link', link_id=link.id)}}">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <input type="submit" value="Delete" class="btn btn-danger">
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    <hr>
+    <a class="btn btn-success" href="/create_form_link/{{form.id}}">Generate New Link</a>
     <a class="btn btn-primary" href="/forms">Go Back</a>
 {% endblock %}

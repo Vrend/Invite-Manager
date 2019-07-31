@@ -110,25 +110,67 @@ def create_form():
 @is_logged_in
 def delete_form(id):
     cur = mysql.connection.cursor()
-    cur.execute('DELETE FROM forms WHERE id = %s AND user = %s', [id, session['username']])
-    mysql.connection.commit()
-    cur.close()
-    flash('Form Deleted', 'success')
-    return redirect(url_for('view_forms'))
-
-# View a specific form
-@app.route('/forms/<string:id>/')
-@is_logged_in
-def view_form(user_id):
-    cur = mysql.connection.cursor()
-    result = cur.execute('SELECT * FROM forms WHERE id = %s AND user = %s', [user_id, session['username']])
+    result = cur.execute('SELECT * FROM forms WHERE id = %s AND user = %s', [id, session['username']])
     if result > 0:
-        form = cur.fetchone()
-        return render_template('form.html', form=form)
+        cur.execute('DELETE FROM links WHERE form_id = %s AND user = %s', [id, session['username']])
+        cur.execute('DELETE FROM forms WHERE id = %s AND user = %s', [id, session['username']])
+        mysql.connection.commit()
+        cur.close()
+        flash('Form Deleted', 'success')
+        return redirect(url_for('view_forms'))
     else:
-        flash('Form is Unavailable', 'danger')
+        flash('Failed to Delete Form', 'danger')
         return redirect(url_for('index'))
 
+# View a specific form
+@app.route('/forms/<string:form_id>/')
+@is_logged_in
+def view_form(form_id):
+    cur = mysql.connection.cursor()
+    result = cur.execute('SELECT * FROM forms WHERE id = %s AND user = %s', [form_id, session['username']])
+    if result > 0:
+        form = cur.fetchone()
+        cur.execute('SELECT * FROM links WHERE form_id = %s', [form_id])
+        links = cur.fetchall()
+        cur.close()
+        return render_template('form.html', form=form, links=links)
+    else:
+        flash('Form is Unavailable', 'danger')
+        cur.close()
+        return redirect(url_for('index'))
+
+
+@app.route('/create_form_link/<string:form_id>', methods=['GET', 'POST'])
+@is_logged_in
+def create_form_link(form_id):
+    if request.method == 'POST':
+        name = request.form['name']
+        uses = request.form['uses']
+        link_id = uuid.uuid1().hex
+        cur = mysql.connection.cursor()
+        cur.execute('INSERT INTO links(id, name, form_id, user, uses, max_uses) VALUES(%s, %s, %s, %s, 0, %s)', (link_id, name, form_id, session['username'], uses))
+        mysql.connection.commit()
+        cur.close()
+        flash('Link Created Successfully', 'success')
+        return redirect(url_for('view_form', form_id=form_id))
+    return render_template('create_form_link.html', form_id=form_id)
+
+
+@app.route('/delete_form_link/<string:link_id>', methods=['POST'])
+@is_logged_in
+def delete_form_link(link_id):
+    cur = mysql.connection.cursor()
+    result = cur.execute('SELECT * FROM links WHERE id = %s AND user = %s', [link_id, session['username']])
+    if result > 0:
+        form_id = cur.fetchone()['form_id']
+        cur.execute('DELETE FROM links WHERE id = %s AND user = %s', [link_id, session['username']])
+        mysql.connection.commit()
+        flash('Link Successfully Deleted', 'success')
+        cur.close()
+        return redirect(url_for('view_form', form_id=form_id))
+    else:
+        flash('Failure to Delete Link', 'danger')
+    return redirect(url_for('index'))
 # Register an account
 @app.route('/register', methods=['GET', 'POST'])
 @is_logged_out
@@ -202,6 +244,7 @@ def user_settings():
 @is_logged_in
 def delete_account():
     cur = mysql.connection.cursor()
+    cur.execute('DELETE FROM links WHERE user = %s', [session['username']])
     cur.execute('DELETE FROM forms WHERE user = %s', [session['username']])
     cur.execute('DELETE FROM users WHERE username = %s', [session['username']])
     mysql.connection.commit()
@@ -212,7 +255,7 @@ def delete_account():
 
 
 @app.before_first_request
-def check_if_user_table_exists():
+def check_if_tables_exists():
     cur = mysql.connection.cursor()
     result = cur.execute('SHOW TABLES LIKE \'users\'')
     if result < 1:
@@ -228,6 +271,13 @@ def check_if_user_table_exists():
         mysql.connection.commit()
     else:
         print('Loading Forms Table...')
+    result = cur.execute('SHOW TABLES LIKE \'links\'')
+    if result < 1:
+        print('Creating Links Table...')
+        cur.execute('CREATE TABLE links(id VARCHAR(50) PRIMARY KEY, name VARCHAR(50), form_id VARCHAR(50), user VARCHAR(30), uses INT(10), max_uses INT(10))')
+        mysql.connection.commit()
+    else:
+        print('Loading Links Table...')
     cur.close()
 
 
