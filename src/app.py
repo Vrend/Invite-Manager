@@ -73,7 +73,13 @@ def create_form():
             cur = mysql.connection.cursor()
             cur.execute('INSERT INTO forms(id, user, name, data, uses, max_uses) VALUES(%s, %s, %s, %s, 0, %s)', (form_id, session['username'], name, options, uses))
             statement = create_form_table(options, form_id)
-            cur.execute(statement)
+            try:
+                cur.execute(statement)
+            except:
+                print(statement)
+                flash('Failed to Create Form')
+                redirect(url_for('create_form'))
+
             mysql.connection.commit()
             cur.close()
             flash('Form Created', 'success')
