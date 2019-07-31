@@ -1,7 +1,7 @@
 import sys
 import uuid
 from flask import Flask, render_template, flash, redirect, url_for, session, request, abort
-from data import gen_options, check_unique_user, get_options, build_submission_form
+from data import gen_options, check_unique_user, get_options, build_submission_form, build_submission_list, build_submission_statement
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, PasswordField, validators, widgets, SelectMultipleField, IntegerField
 from passlib.hash import sha256_crypt
@@ -101,6 +101,15 @@ def create_form():
         else:
             cur = mysql.connection.cursor()
             cur.execute('INSERT INTO forms(id, user, name, data, uses, max_uses) VALUES(%s, %s, %s, %s, 0, %s)', (form_id, session['username'], name, options, uses))
+            statement = 'CREATE TABLE ' + str(form_id) + '(id INT(12) AUTO_INCREMENT PRIMARY KEY'
+            opts = {0: 'picture', 1: 'name', 2: 'email', 3: 'phone', 4: 'school'}
+            iterator = 0
+            for elem in options:
+                if elem == 't':
+                    statement += (', ' + opts[iterator] + ' VARCHAR(200)')
+                iterator += 1
+            statement += ')'
+            cur.execute(statement)
             mysql.connection.commit()
             cur.close()
             flash('Form Created', 'success')
@@ -117,6 +126,7 @@ def delete_form(id):
     if result > 0:
         cur.execute('DELETE FROM links WHERE form_id = %s AND user = %s', [id, session['username']])
         cur.execute('DELETE FROM forms WHERE id = %s AND user = %s', [id, session['username']])
+        cur.execute('DROP TABLE %s' % id)
         mysql.connection.commit()
         cur.close()
         flash('Form Deleted', 'success')
@@ -213,6 +223,11 @@ def submit_form():
             link_uses += 1
             cur.execute('UPDATE forms SET uses = %s WHERE id = %s', [form_uses, form_id])
             cur.execute('UPDATE links SET uses = %s WHERE id=%s', [link_uses, link_id])
+
+            statement = build_submission_statement(form_data['data'], form_id)
+            form_results = build_submission_list([form.picture, form.name, form.email, form.phone, form.school])
+            cur.execute(statement, form_results)
+
             mysql.connection.commit()
             flash('Form Successfully Submitted', 'success')
             cur.close()

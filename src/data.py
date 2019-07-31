@@ -17,6 +17,30 @@ def get_options(form_id, mysql):
     return None
 
 
+def build_submission_statement(options, form_id):
+    opts = {0: 'picture', 1: 'name', 2: 'email', 3: 'phone', 4: 'school'}
+    statement = 'INSERT INTO ' + form_id + '('
+    iterator = 0
+    for option in options:
+        if option == 't':
+            statement += (opts[iterator] + ', ')
+        iterator += 1
+    statement = statement[:-2] + ') VALUES('
+    for option in options:
+        if option == 't':
+            statement += '%s, '
+    statement = statement[:-2] + ')'
+
+    return statement
+
+
+def build_submission_list(results):
+    results = list(filter(None.__ne__, results))
+    results = list(map(lambda x: x.data, results))
+    return results
+
+
+
 def build_submission_form(form, options):
     form_elements = {0: 'picture', 1: 'name', 2: 'email', 3: 'phone', 4: 'school'}
     iterator = 0
