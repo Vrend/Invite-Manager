@@ -96,12 +96,15 @@ def create_form():
         options = gen_options(form.data.data)
         form_id = uuid.uuid1().hex
 
-        cur = mysql.connection.cursor()
-        cur.execute('INSERT INTO forms(id, user, name, data, uses, max_uses) VALUES(%s, %s, %s, %s, 0, %s)', (form_id, session['username'], name, options, uses))
-        mysql.connection.commit()
-        cur.close()
-        flash('Form Created', 'success')
-        return redirect(url_for('index'))
+        if 't' not in options:
+            flash('You require at least one form field', 'danger')
+        else:
+            cur = mysql.connection.cursor()
+            cur.execute('INSERT INTO forms(id, user, name, data, uses, max_uses) VALUES(%s, %s, %s, %s, 0, %s)', (form_id, session['username'], name, options, uses))
+            mysql.connection.commit()
+            cur.close()
+            flash('Form Created', 'success')
+            return redirect(url_for('index'))
 
     return render_template('create_form.html', form=form)
 
