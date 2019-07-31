@@ -46,7 +46,7 @@ def is_logged_in(f):
             return f(*args, **kwargs)
         else:
             flash('Not logged in', 'danger')
-            return redirect(url_for('login'))
+            return redirect(url_for('index'))
     return wrap
 
 
@@ -171,6 +171,7 @@ def delete_form_link(link_id):
     else:
         flash('Failure to Delete Link', 'danger')
     return redirect(url_for('index'))
+
 # Register an account
 @app.route('/register', methods=['GET', 'POST'])
 @is_logged_out
@@ -195,6 +196,7 @@ def register():
         return redirect(url_for('index'))
     return render_template('register.html', form=register_form)
 
+
 # Login on this page
 @app.route('/login', methods=['GET', 'POST'])
 @is_logged_out
@@ -211,8 +213,8 @@ def login():
 
             if sha256_crypt.verify(password_candidate, password):
                 session['logged_in'] = True
-                session['username'] = username
-                flash('You are now logged in', 'success')
+                session['username'] = data['username']
+                flash('You are now logged in, '+session['username'], 'success')
                 cur.close()
                 return redirect(url_for('index'))
             else:
@@ -224,6 +226,7 @@ def login():
             cur.close()
             return render_template('login.html', error=error)
     return render_template('login.html')
+
 
 # Logout on this page
 @app.route('/logout')
@@ -256,6 +259,7 @@ def delete_account():
 
 @app.before_first_request
 def check_if_tables_exists():
+    session.permanent = True
     cur = mysql.connection.cursor()
     result = cur.execute('SHOW TABLES LIKE \'users\'')
     if result < 1:
