@@ -1,7 +1,7 @@
 import sys
 import uuid
-from flask import Flask, render_template, flash, redirect, url_for, session, logging, request
-from data import gen_options, check_unique_user
+from flask import Flask, render_template, flash, redirect, url_for, session, request, abort
+from data import gen_options, check_unique_user, get_options, build_submission_form
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, PasswordField, validators, widgets, SelectMultipleField, IntegerField
 from passlib.hash import sha256_crypt
@@ -143,6 +143,7 @@ def view_form(form_id):
         return redirect(url_for('index'))
 
 
+# Create a link for a form
 @app.route('/create_form_link/<string:form_id>', methods=['GET', 'POST'])
 @is_logged_in
 def create_form_link(form_id):
@@ -159,6 +160,7 @@ def create_form_link(form_id):
     return render_template('create_form_link.html', form_id=form_id)
 
 
+# Delete a form link
 @app.route('/delete_form_link/<string:link_id>', methods=['POST'])
 @is_logged_in
 def delete_form_link(link_id):
@@ -174,6 +176,52 @@ def delete_form_link(link_id):
     else:
         flash('Failure to Delete Link', 'danger')
     return redirect(url_for('index'))
+
+
+@app.route('/submit_form', methods=['GET', 'POST'])
+def submit_form():
+    link_id = request.args.get('id', '')
+
+    cur = mysql.connection.cursor()
+    result = cur.execute('SELECT * FROM links WHERE id = %s', [link_id])
+    if result > 0:
+        data = cur.fetchone()
+        form_id = data['form_id']
+        cur.execute('SELECT * FROM forms WHERE id = %s', [form_id])
+        form_data = cur.fetchone()
+
+        form_name = form_data['name']
+
+        link_uses = data['uses']
+        link_max = data['max_uses']
+        form_uses = form_data['uses']
+        form_max = form_data['max_uses']
+
+        if (link_uses >= link_max) and link_max != -1:
+            cur.close()
+            flash('Link exceeds maximum uses', 'danger')
+            return redirect(url_for('index'))
+        if (form_uses >= form_max) and form_max != -1:
+            cur.close()
+            flash('Form exceeds maximum uses', 'danger')
+            return redirect(url_for('index'))
+
+        form = build_submission_form(SubmitFormForm(request.form), get_options(form_id, mysql))
+
+        if request.method == 'POST' and form.validate():
+            form_uses += 1
+            link_uses += 1
+            cur.execute('UPDATE forms SET uses = %s WHERE id = %s', [form_uses, form_id])
+            cur.execute('UPDATE links SET uses = %s WHERE id=%s', [link_uses, link_id])
+            mysql.connection.commit()
+            flash('Form Successfully Submitted', 'success')
+            cur.close()
+            return redirect(url_for('index'))
+        cur.close()
+        return render_template('submit_link.html', form=form, name=form_name)
+
+    else:
+        abort(404)
 
 # Register an account
 @app.route('/register', methods=['GET', 'POST'])
@@ -297,6 +345,7 @@ class RegisterForm(Form):
     confirm = PasswordField('Confirm Password', )
 
 
+# Form Creation Form
 class CheckBoxField(SelectMultipleField):
     widget = widgets.ListWidget(prefix_label=False)
     option_widget = widgets.CheckboxInput()
@@ -307,6 +356,15 @@ class FormCreationForm(Form):
     options = [(1, 'picture'), (2, 'name'), (3, 'email'), (4, 'Phone #'), (5, 'School')]
     data = CheckBoxField('Field Options', choices=options, coerce=int)
     uses = IntegerField('Form Uses', [validators.DataRequired(message='Give a number, -1 for infinite uses'), validators.NumberRange(min=-1)])
+
+
+# Form for Form Submission
+class SubmitFormForm(Form):
+    picture = StringField('Picture', [validators.DataRequired()])
+    name = StringField('Name', [validators.Length(min=1, max=50)])
+    email = StringField('Email', [validators.email()])
+    phone = StringField('Phone #', [validators.Regexp('^[2-9]\\d{2}-\\d{3}-\\d{4}$', message="Enter a valid phone number")])
+    school = StringField('School', [validators.DataRequired()])
 
 
 @app.errorhandler(404)

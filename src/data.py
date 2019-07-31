@@ -6,6 +6,27 @@ def gen_options(option_list):
     return "".join(default)
 
 
+def get_options(form_id, mysql):
+    cur = mysql.connection.cursor()
+    result = cur.execute('SELECT * FROM forms WHERE id = %s', [form_id])
+    if result > 0:
+        data = cur.fetchone()['data']
+        cur.close()
+        return data
+    cur.close()
+    return None
+
+
+def build_submission_form(form, options):
+    form_elements = {0: 'picture', 1: 'name', 2: 'email', 3: 'phone', 4: 'school'}
+    iterator = 0
+    for char in options:
+        if char == 'f':
+            delattr(form, form_elements[iterator])
+        iterator += 1
+    return form
+
+
 def check_username(username, mysql):
     cur = mysql.connection.cursor()
 
