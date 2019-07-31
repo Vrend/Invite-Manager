@@ -138,13 +138,39 @@ def view_form(form_id):
         form = cur.fetchone()
         cur.execute('SELECT * FROM links WHERE form_id = %s', [form_id])
         links = cur.fetchall()
+
+        cur.execute('SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = \'myinvitemanager\' AND TABLE_NAME = \'%s\'' % form_id)
+        headers = get_form_table_headers(cur.fetchall())
+        print(headers)
+        cur.execute('SELECT * FROM %s' % form_id)
+        responses = cur.fetchall()
+        print(responses)
         cur.close()
-        return render_template('form.html', form=form, links=links)
+        return render_template('form.html', form=form, links=links, headers=headers, users=responses)
     else:
         flash('Form is Unavailable', 'danger')
         cur.close()
         return redirect(url_for('index'))
 
+
+@app.route('/delete_response', methods=['POST'])
+@is_logged_in
+def delete_response():
+    user_id = request.args.get('user_id', '')
+    form_id = request.args.get('form_id', '')
+
+    cur = mysql.connection.cursor()
+
+    result = cur.execute('SELECT * FROM forms WHERE id = %s AND user = %s', [form_id, session['username']])
+    if result > 0:
+        cur.execute('DELETE FROM %s WHERE id = %s' % (form_id, '\'' + user_id + '\''))
+        mysql.connection.commit()
+        cur.close()
+        flash('Respondent Removed', 'success')
+        return redirect(url_for('view_form', form_id=form_id))
+    else:
+        cur.close()
+        abort(404)
 
 # Create a link for a form
 @app.route('/create_form_link/<string:form_id>', methods=['GET', 'POST'])
@@ -371,7 +397,7 @@ class SubmitFormForm(Form):
     picture = StringField('Picture', [validators.DataRequired()])
     name = StringField('Name', [validators.Length(min=1, max=50)])
     email = StringField('Email', [validators.email()])
-    phone = StringField('Phone #', [validators.Regexp('^[2-9]\\d{2}-\\d{3}-\\d{4}$', message="Enter a valid phone number")])
+    phone = StringField('Phone #', [validators.Regexp('^[2-9]\\d{2}-\\d{3}-\\d{4}$', message="Enter a valid phone number: XXX-XXX-XXXX")])
     school = StringField('School', [validators.DataRequired()])
 
 

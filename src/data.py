@@ -45,11 +45,16 @@ def build_submission_statement(options, form_id):
     return statement
 
 
+def get_form_table_headers(response):
+    res = []
+    for col in response:
+        res.append(col['COLUMN_NAME'])
+    return res
+
 def build_submission_list(results):
     results = list(filter(None.__ne__, results))
     results = list(map(lambda x: x.data, results))
     return results
-
 
 
 def build_submission_form(form, options):
