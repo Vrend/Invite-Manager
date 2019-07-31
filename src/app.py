@@ -1,7 +1,7 @@
 import sys
 import uuid
 from flask import Flask, render_template, flash, redirect, url_for, session, request, abort
-from data import gen_options, check_unique_user, get_options, build_submission_form, build_submission_list, build_submission_statement
+from data import *
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, PasswordField, validators, widgets, SelectMultipleField, IntegerField
 from passlib.hash import sha256_crypt
@@ -101,14 +101,7 @@ def create_form():
         else:
             cur = mysql.connection.cursor()
             cur.execute('INSERT INTO forms(id, user, name, data, uses, max_uses) VALUES(%s, %s, %s, %s, 0, %s)', (form_id, session['username'], name, options, uses))
-            statement = 'CREATE TABLE ' + str(form_id) + '(id INT(12) AUTO_INCREMENT PRIMARY KEY'
-            opts = {0: 'picture', 1: 'name', 2: 'email', 3: 'phone', 4: 'school'}
-            iterator = 0
-            for elem in options:
-                if elem == 't':
-                    statement += (', ' + opts[iterator] + ' VARCHAR(200)')
-                iterator += 1
-            statement += ')'
+            statement = create_form_table(options, form_id)
             cur.execute(statement)
             mysql.connection.commit()
             cur.close()

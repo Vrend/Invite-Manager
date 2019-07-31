@@ -17,6 +17,18 @@ def get_options(form_id, mysql):
     return None
 
 
+def create_form_table(options, form_id):
+    statement = 'CREATE TABLE ' + str(form_id) + '(id INT(12) AUTO_INCREMENT PRIMARY KEY'
+    opts = {0: 'picture', 1: 'name', 2: 'email', 3: 'phone', 4: 'school'}
+    iterator = 0
+    for elem in options:
+        if elem == 't':
+            statement += (', ' + opts[iterator] + ' VARCHAR(200)')
+        iterator += 1
+    statement += ')'
+    return statement
+
+
 def build_submission_statement(options, form_id):
     opts = {0: 'picture', 1: 'name', 2: 'email', 3: 'phone', 4: 'school'}
     statement = 'INSERT INTO ' + form_id + '('
@@ -30,7 +42,6 @@ def build_submission_statement(options, form_id):
         if option == 't':
             statement += '%s, '
     statement = statement[:-2] + ')'
-
     return statement
 
 
