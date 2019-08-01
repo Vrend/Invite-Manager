@@ -1,4 +1,11 @@
 import sys
+from flask import request
+
+
+# Produces qrcode
+def produce_qr_string(data):
+    string = 'http://'+request.host + '/view_respondent?hash=' + data
+    return string
 
 
 # Form data holds true-false data in this format: picture, name, email, phone #, School
@@ -9,6 +16,7 @@ def gen_options(option_list):
     return "".join(default)
 
 
+# Grabs the form options and returns it as a string
 def get_options(form_id, mysql):
     cur = mysql.connection.cursor()
     result = cur.execute('SELECT * FROM forms WHERE id = %s', [form_id])
@@ -20,6 +28,8 @@ def get_options(form_id, mysql):
     return None
 
 
+# Returns the SQL statement for creating the responder table for a form
+# TODO: Fix the bug here somewhere
 def create_form_table(options, form_id):
     statement = 'CREATE TABLE ' + str(form_id) + '(id INT(12) AUTO_INCREMENT PRIMARY KEY'
     opts = {0: 'picture', 1: 'name', 2: 'email', 3: 'phone', 4: 'school'}
@@ -32,6 +42,7 @@ def create_form_table(options, form_id):
     return statement
 
 
+# Builds the SQL part of the insertion into the responder database
 def build_submission_statement(options, form_id):
     opts = {0: 'picture', 1: 'name', 2: 'email', 3: 'phone', 4: 'school'}
     statement = 'INSERT INTO ' + form_id + '('
@@ -48,6 +59,7 @@ def build_submission_statement(options, form_id):
     return statement
 
 
+# Grabs the column heads of a responder table
 def get_form_table_headers(response):
     res = []
     for col in response:
@@ -55,12 +67,14 @@ def get_form_table_headers(response):
     return res
 
 
+# Returns a list of form data pieces from a submission form
 def build_submission_list(results):
     results = list(filter(None.__ne__, results))
     results = list(map(lambda x: x.data, results))
     return results
 
 
+# Removes unnecessary pieces from a submission form
 def build_submission_form(form, options):
     form_elements = {0: 'picture', 1: 'name', 2: 'email', 3: 'phone', 4: 'school'}
     iterator = 0
@@ -71,6 +85,16 @@ def build_submission_form(form, options):
     return form
 
 
+def add_hash_to_user_dictionary(users, hashes):
+    hash_list = {}
+    for user_hash in hashes:
+        hash_list[user_hash['user_id']] = user_hash['hash']
+    for user in users:
+        user_id = str(user['id'])
+        user['hash'] = hash_list[user_id]
+    return users
+
+# Confirms that a username is unique
 def check_username(username, mysql):
     cur = mysql.connection.cursor()
 
@@ -83,6 +107,7 @@ def check_username(username, mysql):
         return True
 
 
+# Confirms that an email is unique
 def check_email(email, mysql):
     cur = mysql.connection.cursor()
 
@@ -95,10 +120,12 @@ def check_email(email, mysql):
         return True
 
 
+# Combined method for convenience (and code golf)
 def check_unique_user(username, email, mysql):
     return check_username(username, mysql) and check_email(email, mysql)
 
 
+# Returns whether or not program is in debug mode
 def check_debug_mode():
     debug = False
     try:

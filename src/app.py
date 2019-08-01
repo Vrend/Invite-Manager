@@ -5,6 +5,7 @@ from flask_mysqldb import MySQL
 from site_forms import *
 from passlib.hash import sha256_crypt
 from functools import wraps
+from flask_qrcode import QRcode
 
 app = Flask(__name__)
 
@@ -96,6 +97,7 @@ def delete_form(id):
     if result > 0:
         cur.execute('DELETE FROM links WHERE form_id = %s AND user = %s', [id, session['username']])
         cur.execute('DELETE FROM forms WHERE id = %s AND user = %s', [id, session['username']])
+        cur.execute('DELETE FROM qrhash WHERE form = %s', [id])
         cur.execute('DROP TABLE %s' % id)
         mysql.connection.commit()
         cur.close()
@@ -118,8 +120,16 @@ def view_form(form_id):
 
         cur.execute('SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = \'myinvitemanager\' AND TABLE_NAME = \'%s\'' % form_id)
         headers = get_form_table_headers(cur.fetchall())
+
         cur.execute('SELECT * FROM %s' % form_id)
+
         responses = cur.fetchall()
+
+        cur.execute('SELECT * FROM qrhash WHERE form = %s', [form_id])
+        hashes = cur.fetchall()
+
+        responses = add_hash_to_user_dictionary(responses, hashes)
+
         cur.close()
         return render_template('form.html', form=form, links=links, headers=headers, users=responses)
     else:
@@ -139,6 +149,7 @@ def delete_response():
     result = cur.execute('SELECT * FROM forms WHERE id = %s AND user = %s', [form_id, session['username']])
     if result > 0:
         cur.execute('DELETE FROM %s WHERE id = %s' % (form_id, '\'' + user_id + '\''))
+        cur.execute('DELETE FROM qrhash WHERE user_id = %s', [user_id])
         mysql.connection.commit()
         cur.close()
         flash('Respondent Removed', 'success')
@@ -182,6 +193,7 @@ def delete_form_link(link_id):
     return redirect(url_for('index'))
 
 
+# Form gets submitted here
 @app.route('/submit_form', methods=['GET', 'POST'])
 def submit_form():
     link_id = request.args.get('id', '')
@@ -216,21 +228,65 @@ def submit_form():
             form_uses += 1
             link_uses += 1
             cur.execute('UPDATE forms SET uses = %s WHERE id = %s', [form_uses, form_id])
-            cur.execute('UPDATE links SET uses = %s WHERE id=%s', [link_uses, link_id])
+            cur.execute('UPDATE links SET uses = %s WHERE id = %s', [link_uses, link_id])
 
             statement = build_submission_statement(form_data['data'], form_id)
             form_results = build_submission_list([form.picture, form.name, form.email, form.phone, form.school])
             cur.execute(statement, form_results)
-
+            mysql.connection.commit()
+            user_hash = uuid.uuid1().hex
+            cur.execute('INSERT INTO qrhash(hash, user_id, form) VALUES(%s, %s, %s)', (user_hash, cur.lastrowid, form_id))
             mysql.connection.commit()
             flash('Form Successfully Submitted', 'success')
             cur.close()
-            return redirect(url_for('index'))
+            return redirect(url_for('view_qr', hash=user_hash))
         cur.close()
         return render_template('submit_link.html', form=form, name=form_name)
 
     else:
         abort(404)
+
+# Respondent gets redirected here with their qr code
+@app.route('/view_qr', methods=['GET', 'POST'])
+def view_qr():
+    hash = request.args.get('hash', '')
+    cur = mysql.connection.cursor()
+    result = cur.execute('SELECT * from qrhash WHERE hash = %s', [hash])
+    cur.close()
+    if result > 0:
+        img = produce_qr_string(hash)
+        return render_template('view_qr.html', img=img)
+    else:
+        abort(404)
+
+# This is where the qr code leads
+@app.route('/view_respondent', methods=['GET', 'POST'])
+@is_logged_in
+def view_respondent():
+    user_hash = request.args.get('hash', '')
+    cur = mysql.connection.cursor()
+    result = cur.execute('SELECT * FROM qrhash WHERE hash = %s', [user_hash])
+    if result > 0:
+        qrhash_data = cur.fetchone()
+        form_id = qrhash_data['form']
+        user_id = qrhash_data['user_id']
+        cur.execute('SELECT * FROM %s WHERE id = %s' % (form_id, '\'' + user_id + '\''))
+        user = cur.fetchone()
+        print(user)
+        cur.close()
+        return render_template('view_respondent.html', user=user, form_id=form_id)
+    else:
+        cur.close()
+        flash('Invalid QR Code', 'danger')
+        return redirect(url_for('index'))
+
+
+
+
+    cur.close()
+
+    return 'person goes here'
+
 
 # Register an account
 @app.route('/register', methods=['GET', 'POST'])
@@ -342,6 +398,13 @@ def check_if_tables_exists():
         mysql.connection.commit()
     else:
         print('Loading Links Table...')
+    result = cur.execute('SHOW TABLES LIKE \'qrhash\'')
+    if result < 1:
+        print('Creating QR Hash Table...')
+        cur.execute('CREATE TABLE qrhash(hash VARCHAR(200) PRIMARY KEY, user_id VARCHAR(100), form VARCHAR(50))')
+        mysql.connection.commit()
+    else:
+        print('Loading QR Hash Table...')
     cur.close()
 
 
@@ -369,4 +432,5 @@ if __name__ == '__main__':
     app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
     db_config.close()
     mysql = MySQL(app)
+    QRcode(app)
     app.run(debug=check_debug_mode())

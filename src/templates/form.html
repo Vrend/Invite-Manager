@@ -87,6 +87,7 @@
                 <th></th>
             {% endif %}
             <th></th>
+            <th></th>
         </tr>
 
         {% for user in users %}
@@ -120,6 +121,12 @@
                 {% else %}
                     <td></td>
                 {% endif %}
+                <td>
+                    <form method="POST" action="{{url_for('view_respondent', hash=user.hash)}}">
+                        <input type="hidden" name="_method" value="hash">
+                        <input type="submit" value="View" class="btn btn-primary pull-right">
+                    </form>
+                </td>
                 <td>
                     <form method="POST" action="{{url_for('delete_response', form_id=form.id, user_id=user.id)}}">
                         <input type="hidden" name="_method" value="DELETE">
