@@ -11,6 +11,7 @@ Begin by cloning the repository and running the following commands:
  5. `pip install Flask-mysqldb`
  6. `pip install Flask-WTF`
  7. `pip install passlib`
+ 8. `pip install Flask-QRcode`
 
  
  This will create a virtual environment and install dependencies
