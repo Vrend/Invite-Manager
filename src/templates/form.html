@@ -93,7 +93,7 @@
         {% for user in users %}
             <tr>
                 {% if 'picture' in user %}
-                    <td>{{user.picture}}</td>
+                    <td><img src="{{user.picture}}" width="100" height="100" alt="Picture failed"></td>
                 {% else %}
                     <td></td>
                 {% endif %}

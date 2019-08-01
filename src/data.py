@@ -94,6 +94,7 @@ def add_hash_to_user_dictionary(users, hashes):
         user['hash'] = hash_list[user_id]
     return users
 
+
 # Confirms that a username is unique
 def check_username(username, mysql):
     cur = mysql.connection.cursor()

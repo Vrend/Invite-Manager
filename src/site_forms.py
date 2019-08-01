@@ -1,4 +1,5 @@
-from wtforms import Form, StringField, PasswordField, validators, widgets, SelectMultipleField, IntegerField
+from wtforms import Form, StringField, PasswordField, validators, widgets, SelectMultipleField, IntegerField, FileField
+import imghdr
 
 
 # Registration form
@@ -25,8 +26,9 @@ class FormCreationForm(Form):
 
 # Form for Form Submission
 class SubmitFormForm(Form):
-    picture = StringField('Picture', [validators.DataRequired()])
+    picture = StringField('Picture (Link hosted)', [validators.url(message='Please enter a valid image URL')])
     name = StringField('Name', [validators.Length(min=1, max=50)])
     email = StringField('Email', [validators.email()])
     phone = StringField('Phone #', [validators.Regexp('^[2-9]\\d{2}-\\d{3}-\\d{4}$', message="Enter a valid phone number: XXX-XXX-XXXX")])
     school = StringField('School', [validators.DataRequired()])
+

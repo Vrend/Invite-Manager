@@ -1,5 +1,5 @@
 import uuid
-from flask import Flask, render_template, flash, redirect, url_for, session, request, abort
+from flask import Flask, render_template, flash, redirect, url_for, session, abort
 from data import *
 from flask_mysqldb import MySQL
 from site_forms import *

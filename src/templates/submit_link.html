@@ -4,7 +4,12 @@
 <h1>{{name}}</h1>
 <hr>
 {% from 'includes/_formhelpers.html' import render_field %}
-    <form method="POST" action="">
+    <form method="POST" action="" enctype="multipart/form-data">
+        {% if 'picture' in form %}
+            <div class="form-group">
+                {{render_field(form.picture, class_="form-control")}}
+            </div>
+        {% endif %}
 
         {% if 'name' in form %}
             <div class="form-group">
