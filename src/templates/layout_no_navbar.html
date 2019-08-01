@@ -12,8 +12,7 @@
         <script>$(function() {$('#flash').delay(500).fadeIn('normal',function(){$(this).delay(1200).fadeOut(300)});});</script>
         <script>$(function() {$('#error-flash').delay(500).fadeIn('normal',function(){$(this).delay(1200).fadeOut(300);});});</script>
         <script>$(function() {$('#success-flash').delay(500).fadeIn('normal',function(){$(this).delay(1200).fadeOut(300);});});</script>
-
-        {% include 'includes/_navbar.html' %}
+        <br/>
         <div class="container">
             {% include 'includes/_messages.html' %}
             {% block body %} {% endblock %}
