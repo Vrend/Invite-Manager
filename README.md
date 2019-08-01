@@ -35,6 +35,12 @@ If you want to enable debugging, run the *Flask Development* configuration
 **Warning:** Enabling the debugger may leave you open to exploits.
  
  
+ ## Docker
+ 
+ This app has a docker image (vrend/invite_manager)
+ 
+ Run it with this command: `docker run -d -p your_port:5000 vrend/invite_manager`
+ 
 ## License
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.

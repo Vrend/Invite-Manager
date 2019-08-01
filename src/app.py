@@ -434,3 +434,16 @@ if __name__ == '__main__':
     mysql = MySQL(app)
     QRcode(app)
     app.run(debug=check_debug_mode())
+else:
+    # mysql config
+    db_config = open('../db-info', 'r')
+    app.secret_key = db_config.readline().strip()
+    app.config['MYSQL_HOST'] = db_config.readline().strip()
+    app.config['MYSQL_USER'] = db_config.readline().strip()
+    app.config['MYSQL_PASSWORD'] = db_config.readline().strip()
+    mysql_db = db_config.readline().strip()
+    app.config['MYSQL_DB'] = mysql_db
+    app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
+    db_config.close()
+    mysql = MySQL(app)
+    QRcode(app)
