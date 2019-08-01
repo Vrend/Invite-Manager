@@ -1,9 +1,10 @@
 {% extends 'layout.html' %}
 
 {% block body %}
+<script>function imgError(image){ image.onerror = ""; image.src = "/static/noimage.png"; return true;}</script>
 <div class="jumbotron text-center">
     {% if 'picture' in user %}
-        <img src="{{user.picture}}" width="200" height="200" alt="Picture failed">
+        <img onerror="imgError(this)" src="{{user.picture}}" width="200" height="200" alt="Picture failed">
     {% endif %}
     {% if 'name' in user %}
         <h1>{{user.name}}</h1>
