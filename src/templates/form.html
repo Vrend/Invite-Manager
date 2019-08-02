@@ -14,7 +14,7 @@
             $('#message').removeClass('hidden').show().delay(1200).fadeOut(300);
         }
     </script>
-    <script>function imgError(image){ image.onerror = ""; image.src = "/static/noimage.png"; return true;}</script>
+    <script>function imgError(image){ image.onerror = ""; image.src = "/static/noimage.png"; return true;} function toggle_users(){$('#users').toggle();} function toggle_links(){$('#links').toggle()}</script>
     <div id="message" class="alert alert-success hidden">Link Copied</div>
     <h1>{{form.name}}</h1>
     <hr>
@@ -22,41 +22,46 @@
     <h2>Uses: {{form.uses}}</h2>
     <hr>
     <h2>Links</h2>
-    <table class="table table-striped">
-            <tr>
-                <th>Link ID</th>
-                <th>Name</th>
-                <th>Uses</th>
-                <th></th>
-                <th></th>
-                <th></th>
-                <th></th>
-
-
-            </tr>
-            {% for link in links %}
+    <div id="links">
+        <table class="table table-striped">
                 <tr>
-                    <td id="id-{{loop.index}}">{{link.id}}</td>
-                    <td>{{link.name}}</td>
-                    <td>{{link.uses}}</td>
-                    <td></td>
-                    <td></td>
-                    <td>
-                        <button type="button" class="btn btn-primary pull-right" onclick="push({{loop.index}})">Copy Link</button>
-                    </td>
-                    <td>
-                        <form method="POST" action="{{url_for('delete_form_link', link_id=link.id)}}">
-                            <input type="hidden" name="_method" value="DELETE">
-                            <input type="submit" value="Delete" class="btn btn-danger">
-                        </form>
-                    </td>
+                    <th>Link ID</th>
+                    <th>Name</th>
+                    <th>Uses</th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+
+
                 </tr>
-            {% endfor %}
-        </table>
-    <a class="btn btn-success" href="/create_form_link/{{form.id}}">Generate New Link</a>
+                {% for link in links %}
+                    <tr>
+                        <td id="id-{{loop.index}}">{{link.id}}</td>
+                        <td>{{link.name}}</td>
+                        <td>{{link.uses}}</td>
+                        <td></td>
+                        <td></td>
+                        <td>
+                            <button type="button" class="btn btn-primary pull-right" onclick="push({{loop.index}})">Copy Link</button>
+                        </td>
+                        <td>
+                            <form method="POST" action="{{url_for('delete_form_link', link_id=link.id)}}">
+                                <input type="hidden" name="_method" value="DELETE">
+                                <input type="submit" value="Delete" class="btn btn-danger">
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        <a class="btn btn-success" href="/create_form_link/{{form.id}}">Generate New Link</a>
+    </div>
+    <hr>
+    <button type="button" onclick="toggle_links()" class="btn btn-primary">Toggle Links</button>
+    <button type="button" onclick="toggle_users()" class="btn btn-primary">Toggle Respondents</button>
     <hr>
     <h2>Respondents</h2>
-    <table class="table table-striped">
+    <table id="users" class="table table-striped">
         <tr>
             {% if 'picture' in headers %}
                 <th>Picture</th>

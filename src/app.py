@@ -344,6 +344,11 @@ def user_settings():
 def delete_account():
     cur = mysql.connection.cursor()
     cur.execute('DELETE FROM links WHERE user = %s', [session['username']])
+    cur.execute('SELECT * FROM forms WHERE user = %s', [session['username']])
+    forms = cur.fetchall()
+    for form in forms:
+        cur.execute('DELETE FROM qrhash WHERE form = %s', [form['id']])
+        cur.execute('DROP TABLE %s' % form['id'])
     cur.execute('DELETE FROM forms WHERE user = %s', [session['username']])
     cur.execute('DELETE FROM users WHERE username = %s', [session['username']])
     mysql.connection.commit()
