@@ -12,6 +12,7 @@ app = Flask(__name__)
 args = handle_args()
 debug_enabled = args[0]
 allow_registration = args[1]
+show_help = args[2]
 
 # Site index
 @app.route('/')
@@ -406,6 +407,9 @@ def handle_405(e):
 
 
 if __name__ == '__main__':
+    if show_help:
+        show_usage()
+
     # mysql config
     db_config = open('../db-info', 'r')
     app.secret_key = db_config.readline().strip()

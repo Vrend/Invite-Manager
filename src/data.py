@@ -126,14 +126,18 @@ def check_unique_user(username, email, mysql):
     return check_username(username, mysql) and check_email(email, mysql)
 
 
+def show_usage():
+    print('python3 app.py [-d] [-r] [-h]\n[-d][--debug]: Debug Mode\n[-r][--register]: Enable User Registration\n[-h][--help]: Show Usage')
+    sys.exit(0)
+
 # Handles command-line arguments
 def handle_args():
-    res = [False, False]
+    res = [False, False, False]
 
     args = sys.argv[1:]
 
-    unix_options = 'dr'
-    gnu_options = ['debug', 'registration']
+    unix_options = 'drh'
+    gnu_options = ['debug', 'registration', 'help']
 
     try:
         arguments, values = getopt.getopt(args, unix_options, gnu_options)
@@ -146,5 +150,7 @@ def handle_args():
             res[0] = True
         elif argument in ('-r', '--register'):
             res[1] = True
+        elif argument in ('-h', '--help'):
+            res[2] = True
 
     return res

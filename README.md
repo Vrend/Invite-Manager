@@ -27,15 +27,19 @@ Line 5: mysql database name
  
  ## Using
  
-Run the *Flask Production* configuration
-
-If you want to enable debugging, run the *Flask Development* configuration  
+```
+python3 app.py [-d] [-r] [-h]
+[-d][--debug]: Debug Mode
+[-r][--register]: Enable User Registration
+[-h][--help]: Show Usage
+```
+ 
 **Warning:** Enabling the debugger may leave you open to exploits.
  
  
- ## Docker
+ ## Docker Demo
  
- This app has a docker image (vrend/invite_manager)
+ This app has a demo docker image (vrend/invite_manager)
  
  Run it with this command: `docker run -d -p your_port:5000 vrend/invite_manager`
  
