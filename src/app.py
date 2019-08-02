@@ -1,45 +1,27 @@
 import uuid
 from flask import Flask, render_template, flash, redirect, url_for, session, abort
 from data import *
+from access import *
 from flask_mysqldb import MySQL
 from site_forms import *
 from passlib.hash import sha256_crypt
-from functools import wraps
 from flask_qrcode import QRcode
 
 app = Flask(__name__)
 
-
-# Wrappers for sessions
-def is_logged_in(f):
-    @wraps(f)
-    def wrap(*args, **kwargs):
-        if 'logged_in' in session:
-            return f(*args, **kwargs)
-        else:
-            flash('Not logged in', 'danger')
-            return redirect(url_for('index'))
-    return wrap
-
-
-def is_logged_out(f):
-    @wraps(f)
-    def wrap(*args, **kwargs):
-        if 'logged_in' not in session:
-            return f(*args, **kwargs)
-        else:
-            return redirect(url_for('index'))
-    return wrap
+args = handle_args()
+debug_enabled = args[0]
+allow_registration = args[1]
 
 # Site index
 @app.route('/')
 def index():
-    return render_template('home.html')
+    return render_template('home.html', allow_registration=allow_registration)
 
 # About page
 @app.route('/about')
 def about():
-    return render_template('about.html')
+    return render_template('about.html', allow_registration=allow_registration)
 
 # View all available forms
 @app.route('/forms')
@@ -280,18 +262,15 @@ def view_respondent():
         flash('Invalid QR Code', 'danger')
         return redirect(url_for('index'))
 
-
-
-
-    cur.close()
-
-    return 'person goes here'
-
-
 # Register an account
 @app.route('/register', methods=['GET', 'POST'])
 @is_logged_out
 def register():
+
+    if not allow_registration:
+        flash('Registration Disabled', 'danger')
+        return redirect(url_for('index'))
+
     register_form = RegisterForm(request.form)
     if request.method == 'POST' and register_form.validate():
         name = register_form.name.data
@@ -304,7 +283,7 @@ def register():
             return redirect(url_for('register'))
 
         cur = mysql.connection.cursor()
-        cur.execute('INSERT INTO users(name, email, username, password) VALUES(%s, %s, %s, %s)', (name, email, username, password))
+        cur.execute('INSERT INTO users(name, email, username, password, access_level) VALUES(%s, %s, %s, %s, 0)', (name, email, username, password))
         mysql.connection.commit()
         cur.close()
 
@@ -330,6 +309,7 @@ def login():
             if sha256_crypt.verify(password_candidate, password):
                 session['logged_in'] = True
                 session['username'] = data['username']
+                session['access_level'] = data['access_level']
                 flash('You are now logged in, '+session['username'], 'success')
                 cur.close()
                 return redirect(url_for('index'))
@@ -380,7 +360,7 @@ def check_if_tables_exists():
     result = cur.execute('SHOW TABLES LIKE \'users\'')
     if result < 1:
         print('Creating User Table...')
-        cur.execute('CREATE TABLE users(id INT(12) AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), email VARCHAR(100), username VARCHAR(30), password VARCHAR(100))')
+        cur.execute('CREATE TABLE users(id INT(12) AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), email VARCHAR(100), username VARCHAR(30), password VARCHAR(100), access_level INT(5))')
         mysql.connection.commit()
     else:
         print('Loading User table...')
@@ -433,7 +413,7 @@ if __name__ == '__main__':
     db_config.close()
     mysql = MySQL(app)
     QRcode(app)
-    app.run(debug=check_debug_mode())
+    app.run(debug=debug_enabled)
 else:
     # mysql config
     db_config = open('../db-info', 'r')

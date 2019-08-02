@@ -25,8 +25,6 @@ Line 4: mysql password
 Line 5: mysql database name
 ```
  
- Go ahead and test if everything is working by running the *Flask Testing* configuration in pycharm
- 
  ## Using
  
 Run the *Flask Production* configuration

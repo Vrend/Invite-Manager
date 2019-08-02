@@ -14,7 +14,9 @@
             <a class="btn btn-primary" href="/forms">View Forms</a>
         {% else %}
             <a class="btn btn-primary" href="/login">Login</a>
+            {% if allow_registration %}
             <a class="btn btn-success" href="/register">Register</a>
+            {% endif %}
         {% endif %}
     </div>
 {% endblock %}

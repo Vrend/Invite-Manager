@@ -1,5 +1,4 @@
 from wtforms import Form, StringField, PasswordField, validators, widgets, SelectMultipleField, IntegerField, FileField
-import imghdr
 
 
 # Registration form

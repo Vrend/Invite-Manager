@@ -1,4 +1,4 @@
-import sys
+import sys, getopt
 from flask import request
 
 
@@ -126,13 +126,25 @@ def check_unique_user(username, email, mysql):
     return check_username(username, mysql) and check_email(email, mysql)
 
 
-# Returns whether or not program is in debug mode
-def check_debug_mode():
-    debug = False
+# Handles command-line arguments
+def handle_args():
+    res = [False, False]
+
+    args = sys.argv[1:]
+
+    unix_options = 'dr'
+    gnu_options = ['debug', 'registration']
+
     try:
-        debug_param = sys.argv[1]
-        if debug_param == 'debug':
-            debug = True
-    except IndexError:
-        debug = False
-    return debug
+        arguments, values = getopt.getopt(args, unix_options, gnu_options)
+    except getopt.error as err:
+        print(str(err))
+        sys.exit(2)
+
+    for argument, value in arguments:
+        if argument in ('-d', '--debug'):
+            res[0] = True
+        elif argument in ('-r', '--register'):
+            res[1] = True
+
+    return res
