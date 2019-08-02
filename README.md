@@ -41,6 +41,8 @@ python3 app.py [-d] [-r] [-h]
  
  This app has a demo docker image (vrend/invite_manager)
  
+ **The docker image may be behind a few commits**
+ 
  Run it with this command: `docker run -d -p your_port:5000 vrend/invite_manager`
  
 ## License
