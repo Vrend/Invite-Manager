@@ -22,25 +22,3 @@ def is_logged_out(f):
         else:
             return redirect(url_for('index'))
     return wrap
-
-
-# Determines if they're a moderator
-def is_moderator(f):
-    @wraps(f)
-    def wrap(*args, **kwargs):
-        if 'logged in' in session:
-            if 'access_level' in session > 0:
-                return f(*args, **kwargs)
-        abort(404)
-    return wrap
-
-
-# Determines if they're a moderator
-def is_admin(f):
-    @wraps(f)
-    def wrap(*args, **kwargs):
-        if 'logged_in' in session:
-            if 'access_level' in session == 2:
-                return f(*args, **kwargs)
-        abort(404)
-    return wrap
