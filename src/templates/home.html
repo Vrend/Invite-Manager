@@ -1,0 +1,22 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+    <div class="jumbotron text-center">
+        <h1>Invite Manager Homepage</h1>
+        {% if session.logged_in %}
+            <h2>Welcome {{session.username}}</h2>
+        {% endif %}
+
+        <p class="lead">This application allows you to manage and create invites for events.</p>
+
+        {% if session.logged_in %}
+            <a class="btn btn-success" href="/create_form">Create A Form</a>
+            <a class="btn btn-primary" href="/forms">View Forms</a>
+        {% else %}
+            <a class="btn btn-primary" href="/login">Login</a>
+            {% if allow_registration %}
+            <a class="btn btn-success" href="/register">Register</a>
+            {% endif %}
+        {% endif %}
+    </div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% if session.logged_in %}
+    {% extends 'layout.html' %}
+{% else %}
+    {% extends 'layout_no_navbar.html' %}
+{% endif %}
+
+{% block body %}
+    <div class="jumbotron text-center">
+        <h1>Here is your QR code</h1>
+        <h3>Save or screen-shot this and be prepared to present it</h3>
+        <hr>
+        <img src="{{qrcode(img)}}" alt="no QR code for some reason"/>
+        <hr>
+        <br/>
+        <a class="btn btn-primary" href="{{qrcode(img)}}" download="qrcode.png">Download</a>
+        <br/>
+        <br/>
+        <small>You can close this window now</small>
+    </div>
+{% endblock %}

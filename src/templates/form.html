@@ -1,0 +1,150 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+    <script>
+        function push(index) {
+            var content = $('#id-'.concat(index)).text();
+            var result = window.location.host.concat('/submit_form?id=', content);
+            var dummy = document.createElement('textarea');
+            document.body.appendChild(dummy);
+            dummy.value = result;
+            dummy.select();
+            document.execCommand('Copy');
+            dummy.parentNode.removeChild(dummy);
+            $('#message').removeClass('hidden').show().delay(1200).fadeOut(300);
+        }
+    </script>
+    <script>function imgError(image){ image.onerror = ""; image.src = "/static/noimage.png"; return true;} function toggle_users(){$('#users').toggle();} function toggle_links(){$('#links').toggle()}</script>
+    <div id="message" class="alert alert-success hidden">Link Copied</div>
+    <h1>{{form.name}}</h1>
+    <hr>
+    <h2>Form ID: {{form.id}}</h2>
+    <h2>Uses: {{form.uses}}</h2>
+    <hr>
+    <h2>Links</h2>
+    <div id="links">
+        <table class="table table-striped">
+                <tr>
+                    <th>Link ID</th>
+                    <th>Name</th>
+                    <th>Uses</th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+
+
+                </tr>
+                {% for link in links %}
+                    <tr>
+                        <td id="id-{{loop.index}}">{{link.id}}</td>
+                        <td>{{link.name}}</td>
+                        <td>{{link.uses}}</td>
+                        <td></td>
+                        <td></td>
+                        <td>
+                            <button type="button" class="btn btn-primary pull-right" onclick="push({{loop.index}})">Copy Link</button>
+                        </td>
+                        <td>
+                            <form method="POST" action="{{url_for('delete_form_link', link_id=link.id)}}">
+                                <input type="hidden" name="_method" value="DELETE">
+                                <input type="submit" value="Delete" class="btn btn-danger">
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        <a class="btn btn-success" href="/create_form_link/{{form.id}}">Generate New Link</a>
+    </div>
+    <hr>
+    <button type="button" onclick="toggle_links()" class="btn btn-primary">Toggle Links</button>
+    <button type="button" onclick="toggle_users()" class="btn btn-primary">Toggle Respondents</button>
+    <hr>
+    <h2>Respondents</h2>
+    <table id="users" class="table table-striped">
+        <tr>
+            {% if 'picture' in headers %}
+                <th>Picture</th>
+            {% else %}
+                <th></th>
+            {% endif %}
+
+            {% if 'name' in headers %}
+                <th>Name</th>
+            {% else %}
+                <th></th>
+            {% endif %}
+
+            {% if 'email' in headers %}
+                <th>Email</th>
+            {% else %}
+                <th></th>
+            {% endif %}
+
+            {% if 'phone' in headers %}
+                <th>Phone #</th>
+            {% else %}
+                <th></th>
+            {% endif %}
+
+            {% if 'school' in headers %}
+                <th>School</th>
+            {% else %}
+                <th></th>
+            {% endif %}
+            <th></th>
+            <th></th>
+        </tr>
+
+        {% for user in users %}
+            <tr>
+                {% if 'picture' in user %}
+                    <td><img onerror="imgError(this)" src="{{user.picture}}" width="100" height="100" alt="Picture failed"></td>
+                {% else %}
+                    <td></td>
+                {% endif %}
+
+                {% if 'name' in headers %}
+                    <td>{{user.name}}</td>
+                {% else %}
+                    <td></td>
+                {% endif %}
+
+                {% if 'email' in headers %}
+                    <td>{{user.email}}</td>
+                {% else %}
+                    <td></td>
+                {% endif %}
+
+                {% if 'phone' in headers %}
+                    <td>{{user.phone}}</td>
+                {% else %}
+                    <td></td>
+                {% endif %}
+
+                {% if 'school' in headers %}
+                    <td>{{user.school}}</td>
+                {% else %}
+                    <td></td>
+                {% endif %}
+                <td>
+                    <form method="POST" action="{{url_for('view_respondent', hash=user.hash)}}">
+                        <input type="hidden" name="_method" value="hash">
+                        <input type="submit" value="View" class="btn btn-primary pull-right">
+                    </form>
+                </td>
+                <td>
+                    <form method="POST" action="{{url_for('delete_response', form_id=form.id, user_id=user.id)}}">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <input type="submit" value="Delete" class="btn btn-danger">
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+    <hr>
+    <a class="btn btn-primary" href="/forms">Go Back</a>
+    <br/>
+    <br/>
+    <br/>
+{% endblock %}

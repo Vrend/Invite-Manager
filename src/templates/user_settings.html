@@ -1,0 +1,19 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="jumbotron text-center">
+    <h1>User Settings</h1>
+    <hr>
+    <p>
+        <label>Delete Account?</label>
+        <br/>
+        <small>There will be no confirmation and cannot be undone</small>
+        <br/>
+        <form method="POST" action="{{url_for('delete_account')}}">
+            <input type="hidden" name="_method" value="DELETE">
+            <input type="submit" value="Delete Account" class="btn btn-danger">
+        </form>
+    </p>
+</div>
+
+{% endblock %}

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8"/>
+        <title>My Invite Manager</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
+        <link rel="shortcut icon" href="{{url_for('static', filename='favicon.ico')}}">
+    </head>
+    <body>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <script>$(function() {$('#flash').delay(500).fadeIn('normal',function(){$(this).delay(1200).fadeOut(300)});});</script>
+        <script>$(function() {$('#error-flash').delay(500).fadeIn('normal',function(){$(this).delay(1200).fadeOut(300);});});</script>
+        <script>$(function() {$('#success-flash').delay(500).fadeIn('normal',function(){$(this).delay(1200).fadeOut(300);});});</script>
+
+        {% include 'includes/_navbar.html' %}
+        <div class="container">
+            {% include 'includes/_messages.html' %}
+            {% block body %} {% endblock %}
+        </div>
+        <hr>
+        <p class="text-center text-muted">Copyright &copy; Vrend 2019</p>
+    </body>
+</html>

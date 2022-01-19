@@ -1,0 +1,47 @@
+{% if session.logged_in %}
+    {% extends 'layout.html' %}
+{% else %}
+    {% extends 'layout_no_navbar.html' %}
+{% endif %}
+
+{% block body %}
+<h1>{{name}}</h1>
+<hr>
+{% from 'includes/_formhelpers.html' import render_field %}
+    <form method="POST" action="" enctype="multipart/form-data">
+        {% if 'picture' in form %}
+            <div class="form-group">
+                {{render_field(form.picture, class_="form-control")}}
+            </div>
+        {% endif %}
+
+        {% if 'name' in form %}
+            <div class="form-group">
+                {{render_field(form.name, class_="form-control")}}
+            </div>
+        {% endif %}
+
+        {% if 'email' in form %}
+         <div class="form-group">
+            {{render_field(form.email, class_="form-control")}}
+        </div>
+        {% endif %}
+
+        {% if 'phone' in form %}
+         <div class="form-group">
+            {{render_field(form.phone, class_="form-control")}}
+        </div>
+        {% endif %}
+
+        {% if 'school' in form %}
+         <div class="form-group">
+            {{render_field(form.school, class_="form-control")}}
+        </div>
+        {% endif %}
+        <hr>
+        <p>
+            <input type="submit" class="btn btn-success" value="Submit">
+            <a class="btn btn-danger" href="/">Cancel</a>
+        </p>
+    </form>
+{% endblock %}

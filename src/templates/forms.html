@@ -1,0 +1,39 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+        <h1>My Forms</h1>
+        <hr>
+        <table class="table table-striped">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Uses</th>
+                <th class="pull-right">Actions</th>
+                <th></th>
+            </tr>
+            {% for form in forms %}
+                <tr>
+                    <td>{{form.id}}</td>
+                    <td>{{form.name}}</td>
+                    <td>{{form.uses}}</td>
+                    <td><a href="/forms/{{form.id}}" class="btn btn-primary pull-right">View</a></td>
+                    <td>
+                        <form method="POST" action="{{url_for('delete_form', id=form.id)}}">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <input type="submit" value="Delete" class="btn btn-danger">
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <div class="text-center text-muted">
+            {{msg}}
+            {% if msg.__len__() > 0 %}
+            <br/>
+            <br/>
+            <a class="btn btn-primary" href="/create_form">Create A Form?</a>
+            {% endif %}
+        </div>
+
+{% endblock %}

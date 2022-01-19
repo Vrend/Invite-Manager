@@ -1,0 +1,34 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<script>function imgError(image){ image.onerror = ""; image.src = "/static/noimage.png"; return true;}</script>
+<div class="jumbotron text-center">
+    {% if 'picture' in user %}
+        <img onerror="imgError(this)" src="{{user.picture}}" width="200" height="200" alt="Picture failed">
+    {% endif %}
+    {% if 'name' in user %}
+        <h1>{{user.name}}</h1>
+    {% endif %}
+    <hr>
+    {% if 'email' in user %}
+        <h3>{{user.email}}</h3>
+    {% endif %}
+    <br/>
+    {% if 'phone' in user %}
+        <h3>{{user.phone}}</h3>
+    {% endif %}
+    <br/>
+    {% if 'school' in user %}
+        <h3>{{user.school}}</h3>
+    {% endif %}
+    <hr>
+    <br/>
+    <form method="POST" action="{{url_for('delete_response', form_id=form_id, user_id=user.id)}}">
+        <input type="hidden" name="_method" value="DELETE">
+        <input type="submit" value="Mark As Here" class="btn btn-success">
+    </form>
+    <br/>
+    <a class="btn btn-primary" href="{{url_for('view_form', form_id=form_id)}}">Go Back</a>
+</div>
+
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+    <h1>Create a Form</h1>
+    {% from "includes/_formhelpers.html" import render_field %}
+    <form method="POST" action="">
+        <div class="form-group">
+            {{ render_field(form.name, class_="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.data, class_="form-check-input") }}
+        </div>
+        <div class="form-group">
+            {{ render_field(form.uses, class_="form-control") }}
+        </div>
+        <p>
+            <input class="btn btn-primary" type="submit" value="Submit">
+            <a class="btn btn-danger" href="/">Cancel</a>
+        </p>
+    </form>
+{% endblock %}
